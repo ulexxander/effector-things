@@ -8,10 +8,10 @@ export interface PersistentStorage {
   removeItem(key: string): void | Promise<void>;
 }
 
-export type PersistCodec<State> = {
+export interface PersistCodec<State> {
   marshal: (state: State) => string;
   unmarshal: (rawState: string) => State;
-};
+}
 
 export type PersistConfig<State> = {
   storage: PersistentStorage;

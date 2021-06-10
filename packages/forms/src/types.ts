@@ -8,7 +8,7 @@ export type FieldValidator<FieldName> = (
 ) => string;
 
 export type FormField<FieldName extends string> = {
-  default: FormValue;
+  default?: FormValue;
   validator?: FieldValidator<FieldName>;
 };
 
@@ -33,6 +33,11 @@ export type FormUpdaters<FieldName extends string> = Record<
   Event<FormValue>
 >;
 
+export type FormResetters<FieldName extends string> = Record<
+  FieldName,
+  Event<void>
+>;
+
 export type FormErrors<FieldName extends string> = Record<
   FieldName,
   Store<string>
@@ -41,6 +46,7 @@ export type FormErrors<FieldName extends string> = Record<
 export type FormModel<FieldName extends string> = {
   values: FormValues<FieldName>;
   updaters: FormUpdaters<FieldName>;
+  resetters: FormResetters<FieldName>;
   errors: FormErrors<FieldName>;
   $state: Store<FormState<FieldName>>;
   $errorState: Store<FormErrorState<FieldName>>;
@@ -49,3 +55,11 @@ export type FormModel<FieldName extends string> = {
   validated: Event<FormState<FieldName>>;
   reset: Event<void>;
 };
+
+export type ReflectableProps = {
+  value: FormValue;
+  update: (value: FormValue) => void;
+  error: string;
+};
+
+export type Reflectable = React.FC<ReflectableProps>;

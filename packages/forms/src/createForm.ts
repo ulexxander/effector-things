@@ -1,23 +1,15 @@
 import { combine, createEvent, createStore, guard, sample } from "effector";
-import React from "react";
 import {
   FormConfig,
   FormErrors,
   FormErrorState,
   FormModel,
+  FormResetters,
   FormState,
   FormUpdaters,
   FormValue,
   FormValues,
 } from "./types";
-
-export type ReflectableProps = {
-  value: FormValue;
-  update: (value: FormValue) => void;
-  error: string;
-};
-
-export type Reflectable = React.FC<ReflectableProps>;
 
 export function createForm<FieldName extends string>(
   config: FormConfig<FieldName>
@@ -28,6 +20,7 @@ export function createForm<FieldName extends string>(
 
   const values = {} as FormValues<FieldName>;
   const updaters = {} as FormUpdaters<FieldName>;
+  const resetters = {} as FormResetters<FieldName>;
   const errors = {} as FormErrors<FieldName>;
 
   const fieldNames = Object.keys(config.fields) as FieldName[];
@@ -35,16 +28,20 @@ export function createForm<FieldName extends string>(
   for (const name of fieldNames) {
     const field = config.fields[name];
 
-    const $value = createStore<FormValue>(field.default);
-    const $error = createStore<string>("");
+    const $value = createStore<FormValue>(
+      field.default !== undefined ? field.default : ""
+    );
     const updater = createEvent<FormValue>();
+    const resetter = createEvent<void>();
+    const $error = createStore<string>("");
 
-    $value.on(updater, (_, newVal) => newVal).reset(reset);
-    $error.reset([updater, reset]);
+    $value.on(updater, (_, val) => val).reset([resetter, reset]);
+    $error.reset([updater, resetter, reset]);
 
     values[name] = $value;
-    errors[name] = $error;
     updaters[name] = updater;
+    resetters[name] = resetter;
+    errors[name] = $error;
 
     sample({
       clock: submit,
@@ -65,21 +62,20 @@ export function createForm<FieldName extends string>(
   );
 
   const $hasErrors = $errorState.map((errs) =>
-    Object.keys(errs).every((key) => errs[key as FieldName] !== "")
+    Object.keys(errs).some((key) => errs[key as FieldName] !== "")
   );
-
-  const $noErrors = $hasErrors.map((has) => !has);
 
   guard({
     clock: submit,
     source: $state,
-    filter: $noErrors,
+    filter: $hasErrors.map((has) => !has),
     target: validated,
   });
 
   return {
     values,
     updaters,
+    resetters,
     errors,
     $state,
     $errorState,

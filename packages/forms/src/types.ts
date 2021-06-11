@@ -55,11 +55,3 @@ export type FormModel<FieldName extends string> = {
   validated: Event<FormState<FieldName>>;
   reset: Event<void>;
 };
-
-export type ReflectableProps = {
-  value: FormValue;
-  update: (value: FormValue) => void;
-  error: string;
-};
-
-export type Reflectable = React.FC<ReflectableProps>;

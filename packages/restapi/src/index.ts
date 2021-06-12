@@ -1,1 +1,2 @@
-export * from "./requestFactory";
+export * from "./requestsFactory";
+export * from "./types";

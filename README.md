@@ -11,13 +11,13 @@ This repository is a monorepo, uses **yarn workspaces** and keeps all of its cod
 ## Currently available:
 
 - `@effector-things/forms` - structured and low-boilerplate form values, events, state, validation and errors
+- `@effector-things/forms-react` - bind/incapsulate form fields into react components to write less code and boost perfomance
 - `@effector-things/persist` - sync effector store in single line with any kind of storage and using any kind of data format (codec)
+- `@effector-things/restapi` - unified restapi calls creation with ability to inject store into request as well as common things like data, error, loading
 
 ## Upcoming, not yet extracted:
 
-- `@effector-things/forms-react` - bind/incapsulate form fields into react components to write less code and boost perfomance
 - `@effector-things/time`
-- `@effector-things/restapi`
 - `@effector-things/router-dom` and `@effector-things/router-dom-react`
 - `@effector-things/shortcuts`
 - `@effector-things/uploads`

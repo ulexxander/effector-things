@@ -2,7 +2,7 @@ import { createEvent, createStore } from "effector";
 import { requestsFactory } from "./requestsFactory";
 import { RequestHandler } from "./types";
 
-export function sleep(ms: number) {
+function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

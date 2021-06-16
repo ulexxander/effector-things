@@ -1,6 +1,6 @@
 import { createRouter } from "./createRouter";
 
-export function sleep(ms: number) {
+function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

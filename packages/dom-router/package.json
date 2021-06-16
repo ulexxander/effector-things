@@ -13,7 +13,7 @@
     "peers": "yarn add --peer effector"
   },
   "peerDependencies": {
-    "effector": "^21.8.11"
+    "effector": "^21.8.12"
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",

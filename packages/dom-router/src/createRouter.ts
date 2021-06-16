@@ -30,7 +30,8 @@ export function createRouter(): RouterModel {
   });
 
   const setLocation = createEvent<string>();
-  location.on(setLocation, (_, path) => path);
+  const resetLocation = createEvent<void>();
+  location.on(setLocation, (_, path) => path).reset(resetLocation);
 
   forward({ from: push, to: [pushFx, setLocation] });
   forward({ from: replace, to: [replaceFx, setLocation] });
@@ -53,6 +54,8 @@ export function createRouter(): RouterModel {
       const listener = (e: { state?: { path?: string } }) => {
         if (e.state?.path) {
           setLocation(e.state.path);
+        } else {
+          resetLocation();
         }
       };
 

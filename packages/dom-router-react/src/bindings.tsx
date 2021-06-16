@@ -1,11 +1,11 @@
 import { createRouter } from "@effector-things/dom-router";
 import { useStore } from "effector-react";
 import React, {
+  ComponentProps,
   ComponentType,
   createContext,
   createElement,
   FC,
-  LinkHTMLAttributes,
   useContext,
 } from "react";
 import { ReactRouterModel, Route } from "./types";
@@ -37,7 +37,7 @@ export const RouterProvider: FC<RouterProviderProps> = ({
 export function useRouter() {
   const router = useContext(routerContext);
   if (!router) {
-    throw new Error("Could no find react dom router in context");
+    throw new Error("Could not get router from context");
   }
   return router;
 }
@@ -67,7 +67,7 @@ export const RouterView: FC<RouterViewProps> = ({ fallback }) => {
     : createElement(fallback);
 };
 
-export type LinkProps = LinkHTMLAttributes<HTMLInputElement> & {
+export type LinkProps = ComponentProps<"a"> & {
   to: string;
 };
 

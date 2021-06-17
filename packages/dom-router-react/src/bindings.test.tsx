@@ -1,26 +1,67 @@
 import "@testing-library/jest-dom/extend-expect";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { createReactRouter, RouterProvider, RouterView } from "./bindings";
+import {
+  createReactRouter,
+  NavLink,
+  RouterProvider,
+  RouterView,
+} from "./bindings";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const PageFallback: React.FC = () => {
-  return <p>Fallback</p>;
-};
-const PageFirst: React.FC = () => {
-  return <p>First</p>;
-};
-const PageSecond: React.FC = () => {
-  return <p>Second</p>;
-};
-const PageThird: React.FC = () => {
-  return <p>Third</p>;
+const Nav: React.FC = () => {
+  return (
+    <nav>
+      <NavLink to="/first" activeClass="active">
+        Link to First
+      </NavLink>
+      <NavLink to="/second" activeClass="active">
+        Link to Second
+      </NavLink>
+      <NavLink to="/third" activeClass="active">
+        Link to Third
+      </NavLink>
+    </nav>
+  );
 };
 
-describe("rendering routes", () => {
+const PageFallback: React.FC = () => {
+  return (
+    <div>
+      <Nav />
+      <p>Page Fallback</p>
+    </div>
+  );
+};
+const PageFirst: React.FC = () => {
+  return (
+    <div>
+      <Nav />
+      <p>Page First</p>
+    </div>
+  );
+};
+const PageSecond: React.FC = () => {
+  return (
+    <div>
+      <Nav />
+      <p>Page Second</p>
+    </div>
+  );
+};
+const PageThird: React.FC = () => {
+  return (
+    <div>
+      <Nav />
+      <p>Page Third</p>
+    </div>
+  );
+};
+
+describe("rendering routes and links", () => {
   const rr = createReactRouter([
     {
       path: "/first",
@@ -138,7 +179,15 @@ describe("rendering routes", () => {
       });
 
       await waitFor(() => {
-        expect(screen.queryByText(tc.expected.content)).toBeInTheDocument();
+        expect(
+          screen.queryByText("Page " + tc.expected.content)
+        ).toBeInTheDocument();
+
+        if (tc.expected.content !== "Fallback") {
+          expect(
+            screen.queryByText("Link to " + tc.expected.content)
+          ).toHaveClass("active");
+        }
       });
     });
   }

@@ -10,6 +10,10 @@ import React, {
 } from "react";
 import { ReactRouterModel, Route } from "./types";
 
+function cn(...classes: (string | false | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
 export function createReactRouter(routes: Route[]): ReactRouterModel {
   const router = createRouter();
 
@@ -91,9 +95,10 @@ export const NavLink: FC<NavLinkProps> = ({
 }) => {
   const location = useLocation();
 
-  const fullClass = location.startsWith(props.to)
-    ? `${activeClass} ${className}`
-    : className;
-
-  return <Link className={fullClass} {...props} />;
+  return (
+    <Link
+      className={cn(location.startsWith(props.to) && activeClass, className)}
+      {...props}
+    />
+  );
 };

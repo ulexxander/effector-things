@@ -10,11 +10,12 @@ This repository is a monorepo, uses **yarn workspaces** and keeps all of its cod
 
 ## Currently available:
 
+- `@effector-things/dom-router` - idiomatic wrapper for history/location browser api for effector
+- `@effector-things/dom-router-react` - handy and easy to use binding of dom-router for react, things like RouterView, Links, hooks etc
 - `@effector-things/forms` - structured and low-boilerplate form values, events, state, validation and errors
 - `@effector-things/forms-react` - bind/incapsulate form fields into react components to write less code and boost perfomance
 - `@effector-things/persist` - sync effector store in single line with any kind of storage and using any kind of data format (codec)
 - `@effector-things/restapi` - unified restapi calls creation with ability to inject store into request as well as common things like data, error, loading
-- `@effector-things/router-react` - simple event-based routing with react containers and hooks for reading router state (untested)
 
 ## Upcoming, not yet extracted:
 

@@ -16,10 +16,10 @@ This repository is a monorepo, uses **yarn workspaces** and keeps all of its cod
 - `@effector-things/forms-react` - bind/incapsulate form fields into react components to write less code and boost perfomance
 - `@effector-things/persist` - sync effector store in single line with any kind of storage and using any kind of data format (codec)
 - `@effector-things/restapi` - unified restapi calls creation with ability to inject store into request as well as common things like data, error, loading
+- `@effector-things/time` - convinient operators (debounce, delay, throttle) and entities (ticker, countdown) for working with time
 
 ## Upcoming, not yet extracted:
 
-- `@effector-things/time`
 - `@effector-things/uploads`
 - `@effector-things/shortcuts`
 - `@effector-things/modals`

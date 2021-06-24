@@ -16,6 +16,7 @@ export interface PersistCodec<State> {
 export type PersistConfig<State> = {
   storage: PersistentStorage;
   codec: PersistCodec<State>;
+  autoRestore?: boolean;
 };
 
 export type PersistReference<State> = {
@@ -49,7 +50,10 @@ export function persist<State>(
     to: updateFx,
   });
 
-  restoreFx();
+  const autoRestore = config.autoRestore || true;
+  if (autoRestore) {
+    restoreFx();
+  }
 
   return {
     update: updateFx,

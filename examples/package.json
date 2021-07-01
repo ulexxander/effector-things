@@ -6,6 +6,15 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
+    "@effector-things/dom-router": "file:../packages/dom-router",
+    "@effector-things/dom-router-react": "file:../packages/dom-router-react",
+    "@effector-things/forms": "file:../packages/forms",
+    "@effector-things/forms-react": "file:../packages/forms-react",
+    "@effector-things/persist": "file:../packages/persist",
+    "@effector-things/restapi": "file:../packages/restapi",
+    "@effector-things/time": "file:../packages/time",
+    "effector": "^21.8.12",
+    "effector-react": "^21.3.2",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },

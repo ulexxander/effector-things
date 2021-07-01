@@ -332,6 +332,31 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@effector-things/dom-router-react@file:packages/dom-router-react":
+  version "1.0.0"
+  dependencies:
+    "@effector-things/dom-router" "*"
+
+"@effector-things/dom-router@file:packages/dom-router":
+  version "1.0.0"
+
+"@effector-things/forms-react@file:packages/forms-react":
+  version "1.0.0"
+  dependencies:
+    "@effector-things/forms" "*"
+
+"@effector-things/forms@file:packages/forms":
+  version "1.0.0"
+
+"@effector-things/persist@file:packages/persist":
+  version "1.0.0"
+
+"@effector-things/restapi@file:packages/restapi":
+  version "1.0.0"
+
+"@effector-things/time@file:packages/time":
+  version "1.0.0"
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -1328,6 +1353,11 @@ domexception@^2.0.1:
   integrity sha512-yxJ2mFy/sibVQlu5qHjOkf9J3K6zgmCxgJ94u2EdvDOV09H+32LtRswEcUsmUWN72pVLOEnTSRaIVVzVQgS0dg==
   dependencies:
     webidl-conversions "^5.0.0"
+
+effector-react@^21.3.2:
+  version "21.3.2"
+  resolved "https://registry.npmjs.org/effector-react/-/effector-react-21.3.2.tgz#1ef52bf72fb304cb76e8bd1d7b75dd5f588ff661"
+  integrity sha512-+SGFgsfVnQ4cSwcjugjK+DnKVk7MDaNTOOzw2n1+8/c477w6YwFi4KusPnMfeWtaAdfidTmRn1EoYSvUhAX+EQ==
 
 effector@^21.8.12:
   version "21.8.12"

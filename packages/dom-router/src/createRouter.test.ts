@@ -87,10 +87,10 @@ describe("moving between routes", () => {
     test(tn, async () => {
       switch (tc.action.t) {
         case "push":
-          r.push(tc.action.p);
+          r.push({ path: tc.action.p });
           break;
         case "replace":
-          r.replace(tc.action.p);
+          r.replace({ path: tc.action.p });
           break;
         case "back":
           r.back();
@@ -127,7 +127,7 @@ test("restoring initial pathname", async () => {
   expect(window.location.pathname).toBe(initial);
   expect(r.location.getState()).toBe(initial);
 
-  r.push(pushed);
+  r.push({ path: pushed });
 
   expect(window.location.pathname).toBe(pushed);
   expect(r.location.getState()).toBe(pushed);

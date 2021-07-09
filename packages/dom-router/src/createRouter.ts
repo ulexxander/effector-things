@@ -7,18 +7,18 @@ import {
 } from "effector";
 import { RoutePayload, RouterModel } from "./types";
 
-function urlFromPathAndQuery(path: string, query?: Record<string, string>) {
+function urlFromPathAndQuery(path: string, query: Record<string, string>) {
   let url = path;
-  if (query && Object.keys(query).length > 0) {
+  if (Object.keys(query).length > 0) {
     url += "?" + new URLSearchParams(query).toString();
   }
   return url;
 }
 
-function withDefaultRoutePayload(event: Event<RoutePayload>) {
+function withDefaultRoutePayload(event: Event<Partial<RoutePayload>>) {
   return event.map(({ path, query }) => ({
-    path: path.startsWith("/") ? path : "/" + path,
-    query: query,
+    path: path?.startsWith("/") ? path : "/" + path,
+    query: query || {},
   }));
 }
 
@@ -26,12 +26,12 @@ export function createRouter(): RouterModel {
   const location = createStore<string>("/");
   const query = createStore<Record<string, string>>({});
 
-  const push = createEvent<RoutePayload>();
+  const push = createEvent<Partial<RoutePayload>>();
   const pushFx = createEffect<RoutePayload, void>(({ path, query }) => {
     history.pushState({ path, query }, "", urlFromPathAndQuery(path, query));
   });
 
-  const replace = createEvent<RoutePayload>();
+  const replace = createEvent<Partial<RoutePayload>>();
   const replaceFx = createEffect<RoutePayload, void>(({ path, query }) => {
     history.replaceState({ path, query }, "", urlFromPathAndQuery(path, query));
   });

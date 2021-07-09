@@ -1,9 +1,15 @@
 import { Event, Store } from "effector";
 
+export type RoutePayload = {
+  path: string;
+  query?: Record<string, string>;
+};
+
 export type RouterModel = {
   location: Store<string>;
-  push: Event<string>;
-  replace: Event<string>;
+  query: Store<Record<string, string>>;
+  push: Event<RoutePayload>;
+  replace: Event<RoutePayload>;
   back: Event<void>;
   next: Event<void>;
   delta: Event<number>;

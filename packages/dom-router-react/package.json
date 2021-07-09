@@ -1,6 +1,6 @@
 {
   "name": "@effector-things/dom-router-react",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,14 +10,12 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "peers": "yarn add --peer effector effector-react react"
-  },
-  "dependencies": {
-    "@effector-things/dom-router": "*"
+    "peers": "yarn add --peer react @effector-things/dom-router effector effector-react"
   },
   "peerDependencies": {
+    "@effector-things/dom-router": "*",
     "effector": "^21.8.12",
-    "effector-react": "^21.3.2",
+    "effector-react": "^21.3.3",
     "react": "^17.0.2"
   },
   "devDependencies": {

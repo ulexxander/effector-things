@@ -56,6 +56,11 @@ export function useRoutes() {
   return router.routes;
 }
 
+export function useQuery() {
+  const router = useRouter();
+  return useStore(router.query);
+}
+
 export type RouterViewProps = {
   fallback: ComponentType;
 };
@@ -79,7 +84,7 @@ export const Link: FC<LinkProps> = ({ to, ...props }) => {
   const router = useRouter();
 
   return createElement("a", {
-    onClick: () => router.push(to),
+    onClick: () => router.push({ path: to }),
     ...props,
   });
 };

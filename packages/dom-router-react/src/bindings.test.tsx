@@ -143,9 +143,12 @@ describe("rendering routes and links", () => {
 
   rr.listen();
 
-  for (const tc of tt) {
+  for (let i = 0; i < tt.length; i++) {
+    const tc = tt[i]!;
     const tn =
-      "p" in tc.action ? `${tc.action.t} with ${tc.action.p}` : tc.action.t;
+      "p" in tc.action
+        ? `${tc.action.t} with ${tc.action.p} (${i})`
+        : `${tc.action.t} (${i})`;
 
     test(tn, async () => {
       render(
@@ -157,10 +160,10 @@ describe("rendering routes and links", () => {
       let a: () => void;
       switch (tc.action.t) {
         case "push":
-          a = () => rr.push((tc.action as any).p);
+          a = () => rr.push({ path: (tc.action as any).p });
           break;
         case "replace":
-          a = () => rr.replace((tc.action as any).p);
+          a = () => rr.replace({ path: (tc.action as any).p });
           break;
         case "back":
           a = () => rr.back();

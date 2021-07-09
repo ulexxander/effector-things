@@ -1,4 +1,5 @@
 import { createRouter } from "./createRouter";
+import { RoutePayload } from "./types";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -10,33 +11,62 @@ describe("moving between routes", () => {
 
   type Case = {
     action:
-      | { t: "push"; p: string }
-      | { t: "replace"; p: string }
+      | { t: "push"; p: Partial<RoutePayload> }
+      | { t: "replace"; p: Partial<RoutePayload> }
       | { t: "back" }
       | { t: "next" }
       | { t: "delta"; p: number };
-    expected: { path: string; length: number };
+    expected: { path: string; query?: Record<string, string>; length: number };
   };
 
   const tt: Case[] = [
-    { action: { t: "back" }, expected: { path: "/", length: 1 } },
-    { action: { t: "back" }, expected: { path: "/", length: 1 } },
-    { action: { t: "delta", p: -5 }, expected: { path: "/", length: 1 } },
-    { action: { t: "next" }, expected: { path: "/", length: 1 } },
-    { action: { t: "replace", p: "/" }, expected: { path: "/", length: 1 } },
-    { action: { t: "push", p: "/" }, expected: { path: "/", length: 2 } },
-    { action: { t: "replace", p: "/" }, expected: { path: "/", length: 2 } },
-    { action: { t: "next" }, expected: { path: "/", length: 2 } },
-    { action: { t: "delta", p: 2 }, expected: { path: "/", length: 2 } },
-    { action: { t: "back" }, expected: { path: "/", length: 2 } },
-
     {
-      action: { t: "push", p: "/first" },
+      action: { t: "back" },
+      expected: { path: "/", length: 1 },
+    },
+    {
+      action: { t: "back" },
+      expected: { path: "/", length: 1 },
+    },
+    {
+      action: { t: "delta", p: -5 },
+      expected: { path: "/", length: 1 },
+    },
+    {
+      action: { t: "next" },
+      expected: { path: "/", length: 1 },
+    },
+    {
+      action: { t: "replace", p: { path: "/" } },
+      expected: { path: "/", length: 1 },
+    },
+    {
+      action: { t: "push", p: { path: "/" } },
+      expected: { path: "/", length: 2 },
+    },
+    {
+      action: { t: "replace", p: { path: "/" } },
+      expected: { path: "/", length: 2 },
+    },
+    {
+      action: { t: "next" },
+      expected: { path: "/", length: 2 },
+    },
+    {
+      action: { t: "delta", p: 2 },
+      expected: { path: "/", length: 2 },
+    },
+    {
+      action: { t: "back" },
+      expected: { path: "/", length: 2 },
+    },
+    {
+      action: { t: "push", p: { path: "/first" } },
       expected: { path: "/first", length: 2 },
     },
     {
-      action: { t: "push", p: "/second" },
-      expected: { path: "/second", length: 3 },
+      action: { t: "push", p: { path: "/second", query: { a: "b" } } },
+      expected: { path: "/second", query: { a: "b" }, length: 3 },
     },
     {
       action: { t: "back" },
@@ -48,14 +78,14 @@ describe("moving between routes", () => {
     },
     {
       action: { t: "delta", p: 2 },
-      expected: { path: "/second", length: 3 },
+      expected: { path: "/second", query: { a: "b" }, length: 3 },
     },
     {
-      action: { t: "push", p: "/third" },
+      action: { t: "push", p: { path: "/third" } },
       expected: { path: "/third", length: 4 },
     },
     {
-      action: { t: "push", p: "/forth" },
+      action: { t: "push", p: { path: "/forth" } },
       expected: { path: "/forth", length: 5 },
     },
     {
@@ -64,33 +94,36 @@ describe("moving between routes", () => {
     },
     {
       action: { t: "next" },
-      expected: { path: "/second", length: 5 },
+      expected: { path: "/second", query: { a: "b" }, length: 5 },
     },
     {
       action: { t: "back" },
       expected: { path: "/first", length: 5 },
     },
     {
-      action: { t: "replace", p: "/second" },
+      action: { t: "replace", p: { path: "/second" } },
       expected: { path: "/second", length: 5 },
     },
     {
       action: { t: "next" },
-      expected: { path: "/second", length: 5 },
+      expected: { path: "/second", query: { a: "b" }, length: 5 },
     },
   ];
 
-  for (const tc of tt) {
+  for (let i = 0; i < tt.length; i++) {
+    const tc = tt[i]!;
     const tn =
-      "p" in tc.action ? `${tc.action.t} with ${tc.action.p}` : tc.action.t;
+      "p" in tc.action
+        ? `${tc.action.t} with ${tc.action.p} (${i})`
+        : `${tc.action.t} (${i})`;
 
     test(tn, async () => {
       switch (tc.action.t) {
         case "push":
-          r.push({ path: tc.action.p });
+          r.push(tc.action.p);
           break;
         case "replace":
-          r.replace({ path: tc.action.p });
+          r.replace(tc.action.p);
           break;
         case "back":
           r.back();
@@ -107,6 +140,7 @@ describe("moving between routes", () => {
 
       expect(r.location.getState()).toBe(window.location.pathname);
       expect(r.location.getState()).toBe(tc.expected.path);
+      expect(r.query.getState()).toEqual(tc.expected.query || {});
       expect(history.length).toBe(tc.expected.length);
     });
   }
@@ -116,19 +150,25 @@ test("restoring initial pathname", async () => {
   const r = createRouter();
 
   // depends on previous test
-  const initial = "/second";
-  const pushed = "/hello";
+  const prevPath = "/second";
+  const prevQuery = { a: "b" };
+  const newPath = "/hello";
+  const newQuery = { c: "100" };
 
-  expect(window.location.pathname).toBe(initial);
-  expect(r.location.getState()).not.toBe(initial);
+  expect(window.location.pathname).toBe(prevPath);
+  expect(window.location.search).toBe("?a=b");
+  expect(r.location.getState()).not.toBe(prevPath);
+  expect(r.query.getState()).not.toEqual(prevQuery);
 
   r.listen();
 
-  expect(window.location.pathname).toBe(initial);
-  expect(r.location.getState()).toBe(initial);
+  expect(window.location.pathname).toBe(prevPath);
+  expect(r.location.getState()).toBe(prevPath);
+  expect(r.query.getState()).toEqual(prevQuery);
 
-  r.push({ path: pushed });
+  r.push({ path: newPath, query: newQuery });
 
-  expect(window.location.pathname).toBe(pushed);
-  expect(r.location.getState()).toBe(pushed);
+  expect(window.location.pathname).toBe(newPath);
+  expect(r.location.getState()).toBe(newPath);
+  expect(r.query.getState()).toEqual(newQuery);
 });

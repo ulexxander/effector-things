@@ -112,8 +112,6 @@ export function createRouter(): RouterModel {
       const listener = (e: {
         state?: { path?: string; query?: Record<string, string> };
       }) => {
-        console.log(e.state);
-
         if (e.state && e.state.path && e.state.query) {
           setLocation(e.state.path);
           setQuery(e.state.query);

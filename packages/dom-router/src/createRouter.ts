@@ -5,7 +5,7 @@ import {
   Event,
   forward,
 } from "effector";
-import { RoutePayload, RouterModel } from "./types";
+import { RoutePayload, RoutePayloadFull, RouterModel } from "./types";
 
 function urlFromPathAndQuery(path: string, query: Record<string, string>) {
   let url = path;
@@ -15,9 +15,11 @@ function urlFromPathAndQuery(path: string, query: Record<string, string>) {
   return url;
 }
 
-function withDefaultRoutePayload(event: Event<Partial<RoutePayload>>) {
+function withDefaultRoutePayload(
+  event: Event<RoutePayload>
+): Event<RoutePayloadFull> {
   return event.map(({ path, query }) => ({
-    path: path?.startsWith("/") ? path : "/" + path,
+    path: path.startsWith("/") ? path : "/" + path,
     query: query || {},
   }));
 }
@@ -26,13 +28,13 @@ export function createRouter(): RouterModel {
   const location = createStore<string>("/");
   const query = createStore<Record<string, string>>({});
 
-  const push = createEvent<Partial<RoutePayload>>();
-  const pushFx = createEffect<RoutePayload, void>(({ path, query }) => {
+  const push = createEvent<RoutePayload>();
+  const pushFx = createEffect<RoutePayloadFull, void>(({ path, query }) => {
     history.pushState({ path, query }, "", urlFromPathAndQuery(path, query));
   });
 
-  const replace = createEvent<Partial<RoutePayload>>();
-  const replaceFx = createEffect<RoutePayload, void>(({ path, query }) => {
+  const replace = createEvent<RoutePayload>();
+  const replaceFx = createEffect<RoutePayloadFull, void>(({ path, query }) => {
     history.replaceState({ path, query }, "", urlFromPathAndQuery(path, query));
   });
 

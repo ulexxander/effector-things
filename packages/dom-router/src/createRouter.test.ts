@@ -11,8 +11,8 @@ describe("moving between routes", () => {
 
   type Case = {
     action:
-      | { t: "push"; p: Partial<RoutePayload> }
-      | { t: "replace"; p: Partial<RoutePayload> }
+      | { t: "push"; p: RoutePayload }
+      | { t: "replace"; p: RoutePayload }
       | { t: "back" }
       | { t: "next" }
       | { t: "delta"; p: number };
@@ -114,7 +114,7 @@ describe("moving between routes", () => {
     const tc = tt[i]!;
     const tn =
       "p" in tc.action
-        ? `${tc.action.t} with ${tc.action.p} (${i})`
+        ? `${tc.action.t} with ${JSON.stringify(tc.action.p)} (${i})`
         : `${tc.action.t} (${i})`;
 
     test(tn, async () => {

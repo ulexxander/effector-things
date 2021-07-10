@@ -14,12 +14,18 @@ function cn(...classes: (string | false | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function createReactRouter(routes: Route[]): ReactRouterModel {
+export function createReactRouter(): ReactRouterModel {
   const router = createRouter();
+  const routesByPath = new Map<string, Route>();
 
   return {
     ...router,
-    routes: new Map(routes.map((route) => [route.path, route])),
+    routes: routesByPath,
+    addRoutes(routes) {
+      for (const route of routes) {
+        routesByPath.set(route.path, route);
+      }
+    },
   };
 }
 

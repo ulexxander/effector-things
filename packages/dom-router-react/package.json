@@ -1,6 +1,6 @@
 {
   "name": "@effector-things/dom-router-react",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "build-test": "tsc --project tsconfig.test.json",
     "test": "jest",
     "peers": "yarn add --peer react @effector-things/dom-router effector effector-react"
   },

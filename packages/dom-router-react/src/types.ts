@@ -8,4 +8,5 @@ export type Route = {
 
 export type ReactRouterModel = RouterModel & {
   routes: Map<string, Route>;
+  addRoutes: (routes: Route[]) => void;
 };

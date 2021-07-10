@@ -62,7 +62,9 @@ const PageThird: React.FC = () => {
 };
 
 describe("rendering routes and links", () => {
-  const rr = createReactRouter([
+  const rr = createReactRouter();
+
+  rr.addRoutes([
     {
       path: "/first",
       view: PageFirst,

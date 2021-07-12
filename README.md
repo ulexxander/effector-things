@@ -4,7 +4,7 @@ Collection of hand-made [Effector](https://effector.dev/) packages to convenient
 
 Wrote those packages to easily reuse between different projects as well as to share with others.
 
-Every single package will be eventually covered with unit-tests and published to npm (currently available only as a git repo).
+Most packages are covered with unit-tests and all of them are published to npm. Project is in early development and may introduce breaking changes in near future.
 
 This repository is a monorepo, uses **yarn workspaces** and keeps all of its code splitted into packages in `/packages` directory.
 

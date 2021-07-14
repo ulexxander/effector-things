@@ -1,23 +1,9 @@
-import {
-  attach,
-  createEffect,
-  createEvent,
-  createStore,
-  forward,
-  guard,
-  Store,
-} from "effector";
-import {
-  RequestHandlerParams,
-  RequestOptions,
-  RequestsFactoryConfig,
-} from "./types";
+import { createEvent, createStore, forward, guard } from "effector";
+import { RequestEffect, RequestOptions, RequestsFactoryConfig } from "./types";
 
-export function requestsFactory<Inject = null>(
-  config: RequestsFactoryConfig<Inject>
-) {
+export function requestsFactory(config: RequestsFactoryConfig) {
   return <Payload, Result>(
-    path: string,
+    url: string,
     fetchOptions: RequestInit,
     options?: RequestOptions<Payload>
   ) => {
@@ -25,31 +11,30 @@ export function requestsFactory<Inject = null>(
     const error = createStore<Error | null>(null);
     const run = createEvent<Payload>();
 
-    const callerFx = createEffect<
-      RequestHandlerParams<Payload, Inject>,
-      Result
-    >((params) => {
-      return config.handler(path, params, fetchOptions) as Promise<Result>;
-    });
-
-    const inject = config.inject || createStore(null);
-
-    const requestFx = attach<Payload, Store<Inject>, typeof callerFx>({
-      effect: callerFx,
-      source: inject as Store<Inject>,
-      mapParams(payload, injected) {
-        return { payload, injected };
-      },
-    });
+    const requestFx = config.requestFx as RequestEffect<Payload, Result>;
 
     data.on(requestFx.doneData, (_, data) => data);
     error.on(requestFx.failData, (_, err) => err).reset(run);
 
-    guard({
-      source: run,
-      filter: requestFx.pending.map((pending) => !pending),
-      target: requestFx,
-    });
+    const runWithRequestContext = run.map((payload) => ({
+      url,
+      payload,
+      fetchOptions,
+    }));
+
+    const concurrent = options?.concurrent || false;
+    if (concurrent) {
+      forward({
+        from: runWithRequestContext,
+        to: requestFx,
+      });
+    } else {
+      guard({
+        source: runWithRequestContext,
+        filter: requestFx.pending.map((pending) => !pending),
+        target: requestFx,
+      });
+    }
 
     if (options?.reload) {
       forward({

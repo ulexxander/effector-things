@@ -1,6 +1,6 @@
-import { createEvent, createStore } from "effector";
+import { createEffect, createEvent } from "effector";
 import { requestsFactory } from "./requestsFactory";
-import { RequestHandler } from "./types";
+import { RequestContext, RequestEffect } from "./types";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -47,51 +47,28 @@ const mockEndpoints: Record<string, FakeEndpoint> = {
 
 const errNotFound = new Error("404 not found =)");
 const errMethodNotAllowed = new Error("Method not allowed =)");
-const errUnathorized = new Error("Unathorized token bad =)");
 
-function mockHandler(): RequestHandler<null> {
-  return async (url, _, fetchOptions) => {
-    const endpoint = mockEndpoints[url];
-    if (!endpoint) {
-      throw errNotFound;
+function mockRequestFx(): RequestEffect {
+  return createEffect<RequestContext<unknown>, unknown>(
+    async ({ url, fetchOptions }) => {
+      const endpoint = mockEndpoints[url];
+      if (!endpoint) {
+        throw errNotFound;
+      }
+
+      if (fetchOptions.method !== endpoint.method) {
+        throw errMethodNotAllowed;
+      }
+
+      await sleep(10);
+      return endpoint.data;
     }
-
-    if (fetchOptions.method !== endpoint.method) {
-      throw errMethodNotAllowed;
-    }
-
-    await sleep(10);
-    return endpoint.data;
-  };
-}
-
-type Auth = { authToken: string };
-
-const oneTokenToRuleThemAll = "a8f2igviunp11n9d1973th9";
-
-function mockHandlerWithAuth(): RequestHandler<Auth> {
-  return async (url, { injected }, fetchOptions) => {
-    if (injected.authToken !== oneTokenToRuleThemAll) {
-      throw errUnathorized;
-    }
-
-    const endpoint = mockEndpoints[url];
-    if (!endpoint) {
-      throw errNotFound;
-    }
-
-    if (fetchOptions.method !== endpoint.method) {
-      throw errMethodNotAllowed;
-    }
-
-    await sleep(10);
-    return endpoint.data;
-  };
+  );
 }
 
 test("successful requests", async () => {
   const rf = requestsFactory({
-    handler: mockHandler(),
+    requestFx: mockRequestFx(),
   });
 
   const req1 = rf<void, SomeListItem[]>("/some/list", { method: "GET" });
@@ -130,7 +107,7 @@ test("successful requests", async () => {
 
 test("request errors", async () => {
   const rf = requestsFactory({
-    handler: mockHandler(),
+    requestFx: mockRequestFx(),
   });
 
   const req2 = rf<void, SomeListItem[]>("/404err", { method: "GET" });
@@ -170,80 +147,60 @@ test("request errors", async () => {
   expect(fnFail).toBeCalledTimes(2);
 });
 
-test("with inject", async () => {
-  const badToken = "198bg9qeqr49";
-  const anotherBadToken = "kkkkkkkk";
-
-  const setAuthToken = createEvent<string>();
-  const injected = createStore({ authToken: badToken }).on(
-    setAuthToken,
-    (_, authToken) => ({ authToken })
-  );
-
+describe("concurrent request option", () => {
   const rf = requestsFactory({
-    inject: injected,
-    handler: mockHandlerWithAuth(),
+    requestFx: mockRequestFx(),
   });
 
-  const req3 = rf<void, SomeListItem[]>("/some/list", { method: "GET" });
+  const testConcurrent = async (concurrent: boolean) => {
+    const req4 = rf<void, SomeListItem[]>(
+      "/some/list",
+      { method: "GET" },
+      { concurrent }
+    );
 
-  req3.run();
-  await sleep(10);
+    const fnReq = jest.fn();
+    const fnDone = jest.fn();
 
-  expect(req3.data.getState()).toBeNull();
-  expect(req3.error.getState()).toBe(errUnathorized);
+    req4.request.watch(fnReq);
+    req4.done.watch(fnDone);
 
-  setAuthToken(oneTokenToRuleThemAll);
+    req4.run();
+    req4.run();
+    req4.run();
+    req4.run();
 
-  req3.run();
-  await sleep(10);
+    if (concurrent) {
+      expect(fnReq).toBeCalledTimes(4);
+    } else {
+      expect(fnReq).toBeCalledTimes(1);
+    }
 
-  expect(req3.data.getState()).toBe(mockEndpoints["/some/list"]!.data);
-  expect(req3.error.getState()).toBeNull();
+    expect(fnDone).not.toBeCalled();
 
-  setAuthToken(anotherBadToken);
+    await sleep(10);
 
-  req3.run();
-  await sleep(10);
+    if (concurrent) {
+      expect(fnReq).toBeCalledTimes(4);
+      expect(fnDone).toBeCalledTimes(4);
+    } else {
+      expect(fnReq).toBeCalledTimes(1);
+      expect(fnDone).toBeCalledTimes(1);
+    }
+  };
 
-  // data is not reset when making request, even if err returned
-  expect(req3.data.getState()).toBe(mockEndpoints["/some/list"]!.data);
-  expect(req3.error.getState()).toBe(errUnathorized);
-});
-
-test("concurrent requests are not possible", async () => {
-  const rf = requestsFactory({
-    handler: mockHandler(),
+  test("disabled (default)", async () => {
+    await testConcurrent(false);
   });
 
-  const req4 = rf<void, SomeListItem[]>("/some/list", { method: "GET" });
-
-  const fnReq = jest.fn();
-  const fnDone = jest.fn();
-
-  req4.request.watch(fnReq);
-  req4.done.watch(fnDone);
-
-  expect(fnReq).not.toBeCalled();
-  expect(fnDone).not.toBeCalled();
-
-  req4.run();
-  req4.run();
-  req4.run();
-  req4.run();
-
-  expect(fnReq).toBeCalledTimes(1);
-  expect(fnDone).not.toBeCalled();
-
-  await sleep(10);
-
-  expect(fnReq).toBeCalledTimes(1);
-  expect(fnDone).toBeCalledTimes(1);
+  test("enabled", async () => {
+    await testConcurrent(true);
+  });
 });
 
 test("with reload option", async () => {
   const rf = requestsFactory({
-    handler: mockHandler(),
+    requestFx: mockRequestFx(),
   });
 
   const reloadRequest = createEvent();

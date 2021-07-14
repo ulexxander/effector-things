@@ -1,18 +1,19 @@
-import { Effect, Event } from "effector";
+import { Event, Store } from "effector";
 
-export type RequestContext<Payload> = {
-  url: string;
+export type RequestHandlerParams<Payload, Inject> = {
   payload: Payload;
-  fetchOptions: RequestInit;
+  injected: Inject;
 };
 
-export type RequestEffect<Payload = unknown, Result = unknown> = Effect<
-  RequestContext<Payload>,
-  Result
->;
+export type RequestHandler<Inject> = (
+  url: string,
+  params: RequestHandlerParams<unknown, Inject>,
+  fetchOptions: RequestInit
+) => Promise<unknown>;
 
-export type RequestsFactoryConfig = {
-  requestFx: RequestEffect;
+export type RequestsFactoryConfig<Inject> = {
+  inject?: Store<Inject>;
+  handler: RequestHandler<Inject>;
 };
 
 export type RequestOptions<Payload> = {

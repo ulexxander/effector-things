@@ -1,7 +1,21 @@
-import { createEvent, createStore, forward, guard } from "effector";
-import { RequestEffect, RequestOptions, RequestsFactoryConfig } from "./types";
+import {
+  attach,
+  createEffect,
+  createEvent,
+  createStore,
+  forward,
+  guard,
+  Store,
+} from "effector";
+import {
+  RequestHandlerParams,
+  RequestOptions,
+  RequestsFactoryConfig,
+} from "./types";
 
-export function requestsFactory(config: RequestsFactoryConfig) {
+export function requestsFactory<Inject = null>(
+  config: RequestsFactoryConfig<Inject>
+) {
   return <Payload, Result>(
     url: string,
     fetchOptions: RequestInit,
@@ -11,26 +25,35 @@ export function requestsFactory(config: RequestsFactoryConfig) {
     const error = createStore<Error | null>(null);
     const run = createEvent<Payload>();
 
-    const requestFx = config.requestFx as RequestEffect<Payload, Result>;
+    const callerFx = createEffect<
+      RequestHandlerParams<Payload, Inject>,
+      Result
+    >((params) => {
+      return config.handler(url, params, fetchOptions) as Promise<Result>;
+    });
+
+    const inject = config.inject || createStore(null);
+
+    const requestFx = attach<Payload, Store<Inject>, typeof callerFx>({
+      effect: callerFx,
+      source: inject as Store<Inject>,
+      mapParams(payload, injected) {
+        return { payload, injected };
+      },
+    });
 
     data.on(requestFx.doneData, (_, data) => data);
     error.on(requestFx.failData, (_, err) => err).reset(run);
 
-    const runWithRequestContext = run.map((payload) => ({
-      url,
-      payload,
-      fetchOptions,
-    }));
-
     const concurrent = options?.concurrent || false;
     if (concurrent) {
       forward({
-        from: runWithRequestContext,
+        from: run,
         to: requestFx,
       });
     } else {
       guard({
-        source: runWithRequestContext,
+        source: run,
         filter: requestFx.pending.map((pending) => !pending),
         target: requestFx,
       });

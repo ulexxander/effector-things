@@ -1,6 +1,6 @@
-import { createEffect, createEvent } from "effector";
+import { createEvent, createStore } from "effector";
 import { requestsFactory } from "./requestsFactory";
-import { RequestContext, RequestEffect } from "./types";
+import { RequestHandler } from "./types";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -47,28 +47,51 @@ const mockEndpoints: Record<string, FakeEndpoint> = {
 
 const errNotFound = new Error("404 not found =)");
 const errMethodNotAllowed = new Error("Method not allowed =)");
+const errUnathorized = new Error("Unathorized token bad =)");
 
-function mockRequestFx(): RequestEffect {
-  return createEffect<RequestContext<unknown>, unknown>(
-    async ({ url, fetchOptions }) => {
-      const endpoint = mockEndpoints[url];
-      if (!endpoint) {
-        throw errNotFound;
-      }
-
-      if (fetchOptions.method !== endpoint.method) {
-        throw errMethodNotAllowed;
-      }
-
-      await sleep(10);
-      return endpoint.data;
+function mockHandler(): RequestHandler<null> {
+  return async (url, _, fetchOptions) => {
+    const endpoint = mockEndpoints[url];
+    if (!endpoint) {
+      throw errNotFound;
     }
-  );
+
+    if (fetchOptions.method !== endpoint.method) {
+      throw errMethodNotAllowed;
+    }
+
+    await sleep(10);
+    return endpoint.data;
+  };
+}
+
+type Auth = { authToken: string };
+
+const oneTokenToRuleThemAll = "a8f2igviunp11n9d1973th9";
+
+function mockHandlerWithAuth(): RequestHandler<Auth> {
+  return async (url, { injected }, fetchOptions) => {
+    if (injected.authToken !== oneTokenToRuleThemAll) {
+      throw errUnathorized;
+    }
+
+    const endpoint = mockEndpoints[url];
+    if (!endpoint) {
+      throw errNotFound;
+    }
+
+    if (fetchOptions.method !== endpoint.method) {
+      throw errMethodNotAllowed;
+    }
+
+    await sleep(10);
+    return endpoint.data;
+  };
 }
 
 test("successful requests", async () => {
   const rf = requestsFactory({
-    requestFx: mockRequestFx(),
+    handler: mockHandler(),
   });
 
   const req1 = rf<void, SomeListItem[]>("/some/list", { method: "GET" });
@@ -107,7 +130,7 @@ test("successful requests", async () => {
 
 test("request errors", async () => {
   const rf = requestsFactory({
-    requestFx: mockRequestFx(),
+    handler: mockHandler(),
   });
 
   const req2 = rf<void, SomeListItem[]>("/404err", { method: "GET" });
@@ -147,9 +170,50 @@ test("request errors", async () => {
   expect(fnFail).toBeCalledTimes(2);
 });
 
+test("with inject", async () => {
+  const badToken = "198bg9qeqr49";
+  const anotherBadToken = "kkkkkkkk";
+
+  const setAuthToken = createEvent<string>();
+  const injected = createStore({ authToken: badToken }).on(
+    setAuthToken,
+    (_, authToken) => ({ authToken })
+  );
+
+  const rf = requestsFactory({
+    inject: injected,
+    handler: mockHandlerWithAuth(),
+  });
+
+  const req3 = rf<void, SomeListItem[]>("/some/list", { method: "GET" });
+
+  req3.run();
+  await sleep(10);
+
+  expect(req3.data.getState()).toBeNull();
+  expect(req3.error.getState()).toBe(errUnathorized);
+
+  setAuthToken(oneTokenToRuleThemAll);
+
+  req3.run();
+  await sleep(10);
+
+  expect(req3.data.getState()).toBe(mockEndpoints["/some/list"]!.data);
+  expect(req3.error.getState()).toBeNull();
+
+  setAuthToken(anotherBadToken);
+
+  req3.run();
+  await sleep(10);
+
+  // data is not reset when making request, even if err returned
+  expect(req3.data.getState()).toBe(mockEndpoints["/some/list"]!.data);
+  expect(req3.error.getState()).toBe(errUnathorized);
+});
+
 describe("concurrent request option", () => {
   const rf = requestsFactory({
-    requestFx: mockRequestFx(),
+    handler: mockHandler(),
   });
 
   const testConcurrent = async (concurrent: boolean) => {
@@ -200,7 +264,7 @@ describe("concurrent request option", () => {
 
 test("with reload option", async () => {
   const rf = requestsFactory({
-    requestFx: mockRequestFx(),
+    handler: mockHandler(),
   });
 
   const reloadRequest = createEvent();

@@ -9,6 +9,15 @@ build-all:
 	yarn --cwd packages/restapi build && \
 	yarn --cwd packages/time build
 
+test-all:
+	yarn --cwd packages/dom-router test && \
+	yarn --cwd packages/dom-router-react test && \
+	yarn --cwd packages/forms test && \
+	yarn --cwd packages/forms-react test && \
+	yarn --cwd packages/persist test && \
+	yarn --cwd packages/restapi test && \
+	yarn --cwd packages/time test
+
 upgrade-deps-all:
 	yarn --cwd packages/dom-router upgrade --latest && \
 	yarn --cwd packages/dom-router-react upgrade --latest && \

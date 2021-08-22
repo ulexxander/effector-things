@@ -1,12 +1,14 @@
-import React, { useState } from "react";
 import {
   NavLink,
   RouterProvider,
   RouterView,
   useLocation,
   useQuery,
-} from "../../packages/dom-router-react/src";
+} from "@effector-things/dom-router-react";
+import React, { useState } from "react";
+import { FirstPage } from "./pages/FirstPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { SecondPage } from "./pages/SecondPage";
 import { router } from "./router";
 
 const Nav: React.FC = () => {
@@ -108,3 +110,14 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
+router.addRoutes([
+  {
+    path: "/first",
+    view: FirstPage,
+  },
+  {
+    path: "/second",
+    view: SecondPage,
+  },
+]);
